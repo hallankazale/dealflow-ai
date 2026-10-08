@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Check project files
+        run: |
+          test -f package.json || { echo "::error::Importe o código React exportado do Lovable (package.json ausente)."; exit 1; }
+          test -f package-lock.json || { echo "::error::Execute npm install localmente e envie package-lock.json."; exit 1; }
+      - run: npm ci
+      - name: Type check
+        run: npm run typecheck --if-present
+      - name: Lint
+        run: npm run lint --if-present
+      - name: Test
+        run: npm run test --if-present
+      - name: Build
+        run: npm run build
